@@ -119,30 +119,36 @@ app.delete('/todos/:id', function (req, res){
 //PUT /todos/:id
 app.put('/todos/:id', function (req, res){
 	var todoId = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos, {id:todoId});		
+	//var matchedTodo = _.findWhere(todos, {id:todoId});		
 
 	var body = _.pick(req.body, "description", "completed");
-	var validAttribures = {};
+	var attribures = {};
  
-	if(!matchedTodo){
+	/*if(!matchedTodo){
 		return res.status(404).send();
+	}*/
+
+	if(body.hasOwnProperty('completed')){
+		attribures.completed = body.completed;
 	}
 
-	if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)){
-		validAttribures.completed = body.completed;
-	}else if(body.hasOwnProperty){
-		return res.status(400).send();
+	if(body.hasOwnProperty('description')){
+		attribures.description = body.description;
 	}
 
-	if(body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length>0){
-		validAttribures.description = body.description;
-	}else if(body.hasOwnProperty('description')){
-		return res.status(400).send();
-	}
-
-	//here we will use extend to copy into another one
-	_.extend(matchedTodo, validAttribures);
-	res.json(matchedTodo);
+	db.todo.findById(todoId).then(function (todo){
+		if(todo){
+			todo.update(attribures).then(function(todo){
+				res.json(todo.toJSON());
+			},function(e){
+				res.status(400).json(e);
+			})
+		}else{
+			res.status(404).send();
+		}
+	}, function(){
+		req.status(500).send();
+	});
 
 });
 
