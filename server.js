@@ -4,6 +4,8 @@ var app = express();
 var _=require('underscore');
 var db = require('./db.js');
 
+var bcrypt = require('bcrypt');
+
 var PORT = process.env.PORT || 3000;
 
 var todos = [];
@@ -159,6 +161,17 @@ app.post('/users', function (req, res) {
 		res.json(user.toPublicJSON());
 	}, function (e) {
 		res.status(400).json(e);
+	});
+});
+
+//POST /users/login/
+app.post('/users/login', function (req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+
+	db.user.authenticate(body).then(function (user) {
+		res.json(user.toPublicJSON());
+	}, function(){
+		res.status(401).send();
 	});
 });
 
