@@ -63,6 +63,48 @@ module.exports = function(sequelize, Datatypes){
 						});
 
 					});
+				},
+				/*findByToken: function(token){
+					return new Promise(function (resolve, reject){
+						try{
+							var decodedJWT = jwt.verify(token, 'qwerty098');
+							var bytes = cryptojs.AES.decreypt(decodedJWT.token, 'abc123@');
+							var tokenData = JSON.parse(bytes.toString(cryptojs.enc.Utf8));
+
+							user.findById(tokenData.id).then(function(user){
+								if(user){
+									resolve(user);
+								}else{
+									reject();
+								}
+							}, function(e){
+								reject();
+							});
+						}catch (e){	
+							reject();
+						}
+					});
+				}*/
+
+					findByToken: function (token) {
+						return new Promise (function (resolve, reject){
+						try{
+							var decodedJWT = jwt.verify(token, 'qwerty098');
+							var bytes =  cryptojs.AES.decrypt(decodedJWT.token, 'abc123@');
+							var tokenData = JSON.parse(bytes.toString(cryptojs.enc.Utf8));
+							user.findById(tokenData.id).then(function () {
+								if(user) {
+									resolve(user);
+								} else {
+									reject();
+								}
+							}, function(){
+								reject();
+							});
+						} catch (e){
+							reject();
+						}
+					})
 				}
 			},
 			instanceMethods:{
@@ -83,8 +125,8 @@ module.exports = function(sequelize, Datatypes){
 
 						return token; 
 					} catch (e) {
-						console.log('here');
-						console.error(e);
+						//console.log('here');
+						//console.error(e);
 						return undefined;
 					}
 				}
